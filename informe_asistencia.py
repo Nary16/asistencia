@@ -180,10 +180,9 @@ asistente = st.selectbox("Selecciona un asistente:", nombres)
 
 import re
 import unicodedata
+
 def limpiar_nombre(nombre):
-    # Normalizar (elimina tildes, ñ → n, etc.)
     nombre = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode('utf-8')
-    # Reemplazar caracteres no válidos por _
     return re.sub(r'[^a-zA-Z0-9_-]', '_', nombre)
 
 # Inicializar session_state
