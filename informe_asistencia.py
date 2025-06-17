@@ -179,7 +179,7 @@ nombres = sorted(df_resumen["Nombre"].dropna().unique().tolist())
 asistente = st.selectbox("Selecciona un asistente:", nombres)
 
 import re
-import unidata
+import unicodedata
 def limpiar_nombre(nombre):
     # Normalizar (elimina tildes, ñ → n, etc.)
     nombre = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode('utf-8')
