@@ -169,7 +169,7 @@ contrasenas_validas = cargar_contrasenas(sheet_id)
 from PIL import Image
 
 # Cargar imagen desde archivo local
-image = Image.open("logo oscuro.png")
+image = Image.open("logo claro.png")
 st.image(image, width=500)
 
 st.title("Generador de Informe INIFAR 📄")
