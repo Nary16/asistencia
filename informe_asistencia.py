@@ -26,7 +26,7 @@ class PDF(FPDF):
 def cargar_datos():
     """Carga datos desde Google Sheets y retorna dos DataFrames."""
     sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
-    url_actividades = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
+    url_actividades = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=796485673"
     url_resumen = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"
     df_actividades = pd.read_csv(url_actividades)
     df_resumen = pd.read_csv(url_resumen)
