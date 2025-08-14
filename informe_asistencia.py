@@ -68,8 +68,8 @@ def dibujar_tabla_resumen(pdf, resumen_fila):
     pdf.ln(20)
 
 def dibujar_tabla_actividades(pdf, filas):
-    cols = ["Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Horas"]
-    headers = ["Tipo de horas", "Fecha de Actividad", "Siglas", "Descripción de la actividad", "Horas"]
+    cols = ["Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
+    headers = ["Tipo de horas", "Fecha de Actividad", "Siglas", "Descripción de la actividad", "Cantidad de horas"]
 
     def text_width(text):
         return pdf.get_string_width(str(text)) + 4
@@ -133,7 +133,7 @@ def dibujar_tabla_actividades(pdf, filas):
         y_before = pdf.get_y()
         pdf.multi_cell(max_widths[3], line_height, desc_text, border=1)
         pdf.set_xy(x_before + max_widths[3], y_before)
-        pdf.cell(max_widths[4], max_cell_height, str(fila["Horas"]), border=1)
+        pdf.cell(max_widths[4], max_cell_height, str(fila["Cantidad de horas"]), border=1)
         pdf.ln(max_cell_height)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
