@@ -25,9 +25,9 @@ class PDF(FPDF):
 
 def cargar_datos():
     """Carga datos desde Google Sheets y retorna dos DataFrames."""
-    sheet_id = "1kQO659dZhq5lqwnXEmBmZ7zESlvk3BH7W9cClQ2CROk"
+    sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
     url_actividades = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
-    url_resumen = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=1209679080"
+    url_resumen = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"
     df_actividades = pd.read_csv(url_actividades)
     df_resumen = pd.read_csv(url_resumen)
     return df_actividades, df_resumen
@@ -158,12 +158,12 @@ def generar_pdf(asistente, df_resumen, df_actividades):
     return pdf
 
 def cargar_contrasenas(sheet_id):
-    url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=1209679080"  # usa el gid real de la hoja
+    url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"  # usa el gid real de la hoja
     df_contrasenas = pd.read_csv(url_contrasenas)
     contrasenas = dict(zip(df_contrasenas["Nombre"], df_contrasenas["Contraseña"]))
     return contrasenas
 
-sheet_id = "1kQO659dZhq5lqwnXEmBmZ7zESlvk3BH7W9cClQ2CROk"
+sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
 contrasenas_validas = cargar_contrasenas(sheet_id)
 
 # --- INTERFAZ STREAMLIT ---
