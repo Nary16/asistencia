@@ -210,8 +210,8 @@ if not st.session_state.autenticado:
 # Si autenticado, mostrar botón para generar PDF
 if st.session_state.autenticado and st.session_state.usuario_autenticado == asistente:
     if st.button("Generar informe de asistencia"):
-        filas_asistente = df_actividades[df_actividades["Nombre"] == asistente]
-        resumen_asistente = df_resumen[df_resumen["Nombre"] == asistente]
+        filas_asistente = df_actividades[df_actividades["Nombre del Asistente"] == asistente]
+        resumen_asistente = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
         st.write(f"Datos actividades para {asistente}:")
         st.write(filas_asistente)
         st.write(f"Datos resumen para {asistente}:")
