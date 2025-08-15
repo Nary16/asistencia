@@ -37,7 +37,7 @@ def cargar_datos_cacheados():
 
 def dibujar_tabla_resumen(pdf, resumen_fila):
     headers = [
-        "Nombre", "Horas asignadas", "Horas totales", "Horas realizadas",
+        "Nombre del Asistente", "Horas asignadas", "Horas totales", "Horas realizadas",
         "Porcentaje", "Horas pendientes", "Fecha de corte"
     ]
     col_widths = [40, 25, 25, 25, 25, 25, 25]
@@ -137,8 +137,8 @@ def dibujar_tabla_actividades(pdf, filas):
         pdf.ln(max_cell_height)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
-    resumen_fila = df_resumen[df_resumen["Nombre"] == asistente]
-    filas = df_actividades[df_actividades["Nombre"] == asistente]
+    resumen_fila = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
+    filas = df_actividades[df_actividades["Nombre del Asistente"] == asistente]
 
     if filas.empty:
         st.warning("No hay registros para este asistente.")
@@ -159,7 +159,7 @@ def generar_pdf(asistente, df_resumen, df_actividades):
 def cargar_contrasenas(sheet_id):
     url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"  # usa el gid real de la hoja
     df_contrasenas = pd.read_csv(url_contrasenas)
-    contrasenas = dict(zip(df_contrasenas["Nombre"], df_contrasenas["Contraseña"]))
+    contrasenas = dict(zip(df_contrasenas["Nombre del Asistente"], df_contrasenas["Contraseña"]))
     return contrasenas
 
 sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
@@ -175,7 +175,7 @@ st.image(image, width=500)
 st.title("Generador de Informe INIFAR 📄")
 
 df_actividades, df_resumen = cargar_datos_cacheados()
-nombres = sorted(df_resumen["Nombre"].dropna().unique().tolist())
+nombres = sorted(df_resumen["Nombre del Asistente"].dropna().unique().tolist())
 asistente = st.selectbox("Selecciona un asistente:", nombres)
 
 import re
