@@ -187,7 +187,7 @@ def dibujar_tabla_actividades(pdf, filas):
             pdf.set_xy(x, temp_y + v_offset)
             pdf.multi_cell(col_widths[i], 8, valor, border=1, align='C')
             pdf.set_y(temp_y)
-        pdf.ln(max_cell_height)
+    pdf.ln(max_cell_height + 2)  # Añade 2 puntos extra de espacio entre filas para evitar solapamiento
 
 def generar_pdf(asistente, df_resumen, df_actividades):
     resumen_fila = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
