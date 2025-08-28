@@ -170,18 +170,14 @@ def dibujar_tabla_actividades(pdf, filas):
                 unique_lines[-1] += ' ...'
             valores[i] = '\n'.join(unique_lines)
 
+        # Calcular la altura máxima estimando el número de líneas por celda
         alturas = []
-        # Calcular la altura necesaria para cada celda (sin padding, fuente uniforme, interlineado estándar)
         for i, valor in enumerate(valores):
-            x = x_start + sum(col_widths[:i])
-            temp_y = pdf.get_y()
-            pdf.set_font("Arial", '', 8)
-            pdf.set_xy(x, temp_y)
-            pdf.multi_cell(col_widths[i], 8, valor, border=0, align='C')
-            alturas.append(pdf.get_y() - temp_y)
-            pdf.set_y(temp_y)
+            n_lines = valor.count('\n') + 1 if valor else 1
+            alturas.append(n_lines * 8)  # 8 es la altura por línea
         max_cell_height = max(alturas) if alturas else 8
-        # Dibujar cada celda con la altura máxima
+
+        # Dibujar cada celda solo una vez, centrando verticalmente el texto si es necesario
         for i, valor in enumerate(valores):
             x = x_start + sum(col_widths[:i])
             temp_y = pdf.get_y()
