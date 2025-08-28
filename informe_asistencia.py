@@ -25,9 +25,9 @@ class PDF(FPDF):
 
 def cargar_datos():
     """Carga datos desde Google Sheets y retorna dos DataFrames."""
-    sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
-    url_actividades = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=796485673"
-    url_resumen = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"
+    sheet_id = "1kQO659dZhq5lqwnXEmBmZ7zESlvk3BH7W9cClQ2CROk"
+    url_actividades = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
+    url_resumen = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=1209679080"
     df_actividades = pd.read_csv(url_actividades)
     df_resumen = pd.read_csv(url_resumen)
     return df_actividades, df_resumen
@@ -37,7 +37,7 @@ def cargar_datos_cacheados():
 
 def dibujar_tabla_resumen(pdf, resumen_fila):
     headers = [
-        "Nombre del Asistente", "Horas asignadas", "Horas totales", "Horas realizadas",
+        "Nombre", "Horas asignadas", "Horas totales", "Horas realizadas",
         "Porcentaje", "Horas pendientes", "Fecha de corte"
     ]
     col_widths = [40, 25, 25, 25, 25, 25, 25]
@@ -68,8 +68,8 @@ def dibujar_tabla_resumen(pdf, resumen_fila):
     pdf.ln(20)
 
 def dibujar_tabla_actividades(pdf, filas):
-    cols = ["Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
-    headers = ["Tipo de horas", "Fecha de Actividad", "Siglas", "Descripción de la actividad", "Cantidad de horas"]
+    cols = ["Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Horas"]
+    headers = ["Tipo de horas", "Fecha de Actividad", "Siglas", "Descripción de la actividad", "Horas"]
 
     def text_width(text):
         return pdf.get_string_width(str(text)) + 4
@@ -133,12 +133,12 @@ def dibujar_tabla_actividades(pdf, filas):
         y_before = pdf.get_y()
         pdf.multi_cell(max_widths[3], line_height, desc_text, border=1)
         pdf.set_xy(x_before + max_widths[3], y_before)
-        pdf.cell(max_widths[4], max_cell_height, str(fila["Cantidad de horas"]), border=1)
+        pdf.cell(max_widths[4], max_cell_height, str(fila["Horas"]), border=1)
         pdf.ln(max_cell_height)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
-    resumen_fila = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
-    filas = df_actividades[df_actividades["Nombre del Asistente"] == asistente]
+    resumen_fila = df_resumen[df_resumen["Nombre"] == asistente]
+    filas = df_actividades[df_actividades["Nombre"] == asistente]
 
     if filas.empty:
         st.warning("No hay registros para este asistente.")
@@ -157,12 +157,12 @@ def generar_pdf(asistente, df_resumen, df_actividades):
     return pdf
 
 def cargar_contrasenas(sheet_id):
-    url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"  # usa el gid real de la hoja
+    url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=1209679080"  # usa el gid real de la hoja
     df_contrasenas = pd.read_csv(url_contrasenas)
-    contrasenas = dict(zip(df_contrasenas["Nombre del Asistente"], df_contrasenas["Contraseña"]))
+    contrasenas = dict(zip(df_contrasenas["Nombre"], df_contrasenas["Contraseña"]))
     return contrasenas
 
-sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
+sheet_id = "1kQO659dZhq5lqwnXEmBmZ7zESlvk3BH7W9cClQ2CROk"
 contrasenas_validas = cargar_contrasenas(sheet_id)
 
 # --- INTERFAZ STREAMLIT ---
@@ -175,7 +175,7 @@ st.image(image, width=500)
 st.title("Generador de Informe INIFAR 📄")
 
 df_actividades, df_resumen = cargar_datos_cacheados()
-nombres = sorted(df_resumen["Nombre del Asistente"].dropna().unique().tolist())
+nombres = sorted(df_resumen["Nombre"].dropna().unique().tolist())
 asistente = st.selectbox("Selecciona un asistente:", nombres)
 
 import re
@@ -210,8 +210,8 @@ if not st.session_state.autenticado:
 # Si autenticado, mostrar botón para generar PDF
 if st.session_state.autenticado and st.session_state.usuario_autenticado == asistente:
     if st.button("Generar informe de asistencia"):
-        filas_asistente = df_actividades[df_actividades["Nombre del Asistente"] == asistente]
-        resumen_asistente = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
+        filas_asistente = df_actividades[df_actividades["Nombre"] == asistente]
+        resumen_asistente = df_resumen[df_resumen["Nombre"] == asistente]
         st.write(f"Datos actividades para {asistente}:")
         st.write(filas_asistente)
         st.write(f"Datos resumen para {asistente}:")
