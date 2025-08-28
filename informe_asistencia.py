@@ -116,7 +116,27 @@ def dibujar_tabla_actividades(pdf, filas):
 
     page_width = pdf.w - pdf.l_margin - pdf.r_margin
     total_width = sum(col_widths)
-    # Centrar la tabla si hay espacio
+    # Si la suma excede el ancho de página, reducir proporcionalmente (excepto la columna de descripción)
+    if total_width > page_width:
+        exceso = total_width - page_width
+        # Repartir el exceso entre todas las columnas menos la de descripción
+        idx_desc = None
+        for i, col in enumerate(cols):
+            if "Descripción" in col:
+                idx_desc = i
+                break
+        # Calcular el total de ancho de las columnas a reducir
+        ancho_reducible = sum(col_widths) - col_widths[idx_desc] if idx_desc is not None else sum(col_widths)
+        for i in range(len(col_widths)):
+            if i != idx_desc and ancho_reducible > 0:
+                reduccion = exceso * (col_widths[i] / ancho_reducible)
+                col_widths[i] = max(min_widths[i], col_widths[i] - reduccion)
+        # Si aún sobra, reducir la columna de descripción pero nunca por debajo de su mínimo
+        total_width = sum(col_widths)
+        if total_width > page_width and idx_desc is not None:
+            col_widths[idx_desc] = max(min_widths[idx_desc], col_widths[idx_desc] - (total_width - page_width))
+
+    total_width = sum(col_widths)
     x_start = pdf.l_margin + max(0, (page_width - total_width) / 2)
 
     # Encabezados con color de fondo
