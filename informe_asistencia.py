@@ -169,7 +169,7 @@ contrasenas_validas = cargar_contrasenas(sheet_id)
 from PIL import Image
 
 # Cargar imagen desde archivo local
-image = Image.open("logo claro.png")
+image = Image.open("logo oscuro.png")
 st.image(image, width=500)
 
 st.title("Generador de Informe INIFAR 📄")
@@ -179,12 +179,9 @@ nombres = sorted(df_resumen["Nombre"].dropna().unique().tolist())
 asistente = st.selectbox("Selecciona un asistente:", nombres)
 
 import re
-import unicodedata
 
 def limpiar_nombre(nombre):
-    nombre = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode('utf-8')
     return re.sub(r'[^a-zA-Z0-9_-]', '_', nombre)
-
 # Inicializar session_state
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
