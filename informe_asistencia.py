@@ -68,8 +68,9 @@ def dibujar_tabla_resumen(pdf, resumen_fila):
     pdf.ln(20)
 
 def dibujar_tabla_actividades(pdf, filas):
-    cols = ["Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Horas"]
-    headers = ["Tipo de horas", "Fecha de Actividad", "Siglas", "Descripción de la actividad", "Horas"]
+    cols = ["Nombre del Asistente", "Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Horas"]
+    headers = ["Nombre", "Tipo de horas", "Fecha de Actividad", "Siglas", "Descripción de la actividad", "Horas"]
+    print("Columnas en actividades:", filas.columns.tolist())
 
     def text_width(text):
         return pdf.get_string_width(str(text)) + 4
