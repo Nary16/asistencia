@@ -179,7 +179,7 @@ def dibujar_tabla_actividades(pdf, filas):
 
         # Dibujar cada celda solo una vez, centrando verticalmente el texto si es necesario
         interlineado = 5  # Menor interlineado para filas más compactas
-        alturas_reales = []
+        max_y = y_data
         for i, valor in enumerate(valores):
             x = x_start + sum(col_widths[:i])
             cell_height = (valor.count('\n') + 1) * interlineado
@@ -187,9 +187,10 @@ def dibujar_tabla_actividades(pdf, filas):
             pdf.set_font("Arial", '', 8)
             pdf.set_xy(x, y_data + v_offset)
             pdf.multi_cell(col_widths[i], interlineado, valor, border=1, align='C')
-            alturas_reales.append(cell_height)
-        # Avanza la posición vertical según la celda más alta realmente dibujada
-        pdf.set_y(y_data + max(alturas_reales) + 2)
+            # Actualizar la posición máxima alcanzada por cualquier celda
+            max_y = max(max_y, pdf.get_y())
+        # Avanza la posición vertical justo después de la última línea impresa de la fila
+        pdf.set_y(max_y + 2)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
     resumen_fila = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
