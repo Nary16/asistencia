@@ -158,7 +158,6 @@ def dibujar_tabla_actividades(pdf, filas):
         # Limitar cada celda a máximo 5 líneas y eliminar líneas repetidas
         for i, valor in enumerate(valores):
             lines = valor.split('\n')
-            # Eliminar líneas repetidas
             seen = set()
             unique_lines = []
             for line in lines:
@@ -166,24 +165,22 @@ def dibujar_tabla_actividades(pdf, filas):
                 if line_stripped and line_stripped not in seen:
                     unique_lines.append(line_stripped)
                     seen.add(line_stripped)
-            # Limitar a 5 líneas
             if len(unique_lines) > 5:
                 unique_lines = unique_lines[:5]
                 unique_lines[-1] += ' ...'
             valores[i] = '\n'.join(unique_lines)
 
         alturas = []
-        # Calcular la altura necesaria para cada celda
+        # Calcular la altura necesaria para cada celda (sin padding, fuente uniforme, interlineado estándar)
         for i, valor in enumerate(valores):
             x = x_start + sum(col_widths[:i])
             temp_y = pdf.get_y()
             pdf.set_font("Arial", '', 8)
-            # Padding interno
-            pdf.set_xy(x + 1, temp_y + 1)
-            pdf.multi_cell(col_widths[i] - 2, 7, valor, border=0, align='C')
+            pdf.set_xy(x, temp_y)
+            pdf.multi_cell(col_widths[i], 8, valor, border=0, align='C')
             alturas.append(pdf.get_y() - temp_y)
-            pdf.set_y(temp_y)  # Restaurar posición
-        max_cell_height = max(alturas) if alturas else 7
+            pdf.set_y(temp_y)
+        max_cell_height = max(alturas) if alturas else 8
         # Dibujar cada celda con la altura máxima
         for i, valor in enumerate(valores):
             x = x_start + sum(col_widths[:i])
@@ -191,10 +188,9 @@ def dibujar_tabla_actividades(pdf, filas):
             cell_height = alturas[i] if alturas else max_cell_height
             v_offset = (max_cell_height - cell_height) / 2 if max_cell_height > cell_height else 0
             pdf.set_font("Arial", '', 8)
-            # Padding interno
-            pdf.set_xy(x + 1, temp_y + v_offset + 1)
-            pdf.multi_cell(col_widths[i] - 2, 7, valor, border=1, align='C')
-            pdf.set_y(temp_y)  # Restaurar para la siguiente celda
+            pdf.set_xy(x, temp_y + v_offset)
+            pdf.multi_cell(col_widths[i], 8, valor, border=1, align='C')
+            pdf.set_y(temp_y)
         pdf.ln(max_cell_height)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
