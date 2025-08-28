@@ -37,7 +37,7 @@ def cargar_datos_cacheados():
 
 def dibujar_tabla_resumen(pdf, resumen_fila):
     headers = [
-        "Nombre", "Horas asignadas", "Horas totales", "Horas realizadas",
+        "Nombre del Asistente", "Horas asignadas", "Horas totales", "Horas realizadas",
         "Porcentaje", "Horas pendientes", "Fecha de corte"
     ]
     col_widths = [40, 25, 25, 25, 25, 25, 25]
@@ -154,8 +154,8 @@ def dibujar_tabla_actividades(pdf, filas):
         pdf.set_y(max(y_after_desc, y_before + max_cell_height))
 
 def generar_pdf(asistente, df_resumen, df_actividades):
-    resumen_fila = df_resumen[df_resumen["Nombre"] == asistente]
-    filas = df_actividades[df_actividades["Nombre"] == asistente]
+    resumen_fila = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
+    filas = df_actividades[df_actividades["Nombre del Asistente"] == asistente]
 
     if filas.empty:
         st.warning("No hay registros para este asistente.")
@@ -177,14 +177,18 @@ def cargar_contrasenas(sheet_id):
     url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"  # usa el gid real de la hoja
     df_contrasenas = pd.read_csv(url_contrasenas)
     print("Columnas encontradas en contraseñas:", df_contrasenas.columns.tolist())
-    col_contra = None
+        col_contra = None
+        col_nombre = None
     for col in df_contrasenas.columns:
         if col.strip().lower() == "contraseña":
             col_contra = col
-            break
+            if col.strip().lower() == "nombre":
+                col_nombre = col
     if not col_contra:
         col_contra = df_contrasenas.columns[-1]
-    contrasenas = dict(zip(df_contrasenas["Nombre"], df_contrasenas[col_contra]))
+        if not col_nombre:
+            col_nombre = df_contrasenas.columns[0]
+        contrasenas = dict(zip(df_contrasenas[col_nombre], df_contrasenas[col_contra]))
     return contrasenas
 
 sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
@@ -200,7 +204,7 @@ st.image(image, width=500)
 st.title("Generador de Informe INIFAR 📄")
 
 df_actividades, df_resumen = cargar_datos_cacheados()
-nombres = sorted(df_resumen["Nombre"].dropna().unique().tolist())
+nombres = sorted(df_resumen["Nombre del Asistente"].dropna().unique().tolist())
 asistente = st.selectbox("Selecciona un asistente:", nombres)
 
 import re
