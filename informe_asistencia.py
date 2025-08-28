@@ -155,47 +155,45 @@ def dibujar_tabla_actividades(pdf, filas):
     for _, fila in filas.iterrows():
         y_data = pdf.get_y()
         valores = [str(fila[col]) if col in fila else "" for col in cols]
-        # Limitar líneas en columna de siglas
-        idx_sigla = None
-        for i, col in enumerate(cols):
-            if "Siglas" in col:
-                idx_sigla = i
-                break
-        if idx_sigla is not None:
-            sigla_lines = valores[idx_sigla].split('\n')
-            if len(sigla_lines) > 2:
-                valores[idx_sigla] = '\n'.join(sigla_lines[:2]) + '...'
+        # Limitar cada celda a máximo 5 líneas y eliminar líneas repetidas
+        for i, valor in enumerate(valores):
+            lines = valor.split('\n')
+            # Eliminar líneas repetidas
+            seen = set()
+            unique_lines = []
+            for line in lines:
+                line_stripped = line.strip()
+                if line_stripped and line_stripped not in seen:
+                    unique_lines.append(line_stripped)
+                    seen.add(line_stripped)
+            # Limitar a 5 líneas
+            if len(unique_lines) > 5:
+                unique_lines = unique_lines[:5]
+                unique_lines[-1] += ' ...'
+            valores[i] = '\n'.join(unique_lines)
 
         alturas = []
         # Calcular la altura necesaria para cada celda
         for i, valor in enumerate(valores):
             x = x_start + sum(col_widths[:i])
             temp_y = pdf.get_y()
-            # Reducir fuente en columna de siglas
-            if i == idx_sigla:
-                pdf.set_font("Arial", '', 7)
-            else:
-                pdf.set_font("Arial", '', 8)
+            pdf.set_font("Arial", '', 8)
             # Padding interno
             pdf.set_xy(x + 1, temp_y + 1)
-            pdf.multi_cell(col_widths[i] - 2, 8, valor, border=0, align='C')
+            pdf.multi_cell(col_widths[i] - 2, 7, valor, border=0, align='C')
             alturas.append(pdf.get_y() - temp_y)
             pdf.set_y(temp_y)  # Restaurar posición
-        max_cell_height = max(alturas) if alturas else 8
+        max_cell_height = max(alturas) if alturas else 7
         # Dibujar cada celda con la altura máxima
         for i, valor in enumerate(valores):
             x = x_start + sum(col_widths[:i])
             temp_y = pdf.get_y()
             cell_height = alturas[i] if alturas else max_cell_height
             v_offset = (max_cell_height - cell_height) / 2 if max_cell_height > cell_height else 0
-            # Reducir fuente en columna de siglas
-            if i == idx_sigla:
-                pdf.set_font("Arial", '', 7)
-            else:
-                pdf.set_font("Arial", '', 8)
+            pdf.set_font("Arial", '', 8)
             # Padding interno
             pdf.set_xy(x + 1, temp_y + v_offset + 1)
-            pdf.multi_cell(col_widths[i] - 2, 8, valor, border=1, align='C')
+            pdf.multi_cell(col_widths[i] - 2, 7, valor, border=1, align='C')
             pdf.set_y(temp_y)  # Restaurar para la siguiente celda
         pdf.ln(max_cell_height)
 
