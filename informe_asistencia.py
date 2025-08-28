@@ -69,14 +69,25 @@ def dibujar_tabla_resumen(pdf, resumen_fila):
 
 def dibujar_tabla_actividades(pdf, filas):
     # Ajusta aquí los nombres de columnas según los datos reales de la hoja de actividades
+    cols = ["Nombre del Asistente", "Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
+    headers = ["Nombre del Asistente", "Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
+    print("Columnas en actividades:", filas.columns.tolist())
 
-    # Tamaños personalizados para cada columna (ajusta según tu preferencia)
-    max_widths = [35, 25, 25, 25, 60, 20]
+    def text_width(text):
+        return pdf.get_string_width(str(text)) + 4
+
+    max_widths = []
+    for col, header in zip(cols, headers):
+        max_w = text_width(header)
+        max_w = max(max_w, max((text_width(str(val)) for val in filas[col]), default=0))
+        max_widths.append(max_w)
+
     page_width = pdf.w - pdf.l_margin - pdf.r_margin
     total_width = sum(max_widths)
     if total_width > page_width:
-        factor = page_width / total_width
-        max_widths = [int(w * factor) for w in max_widths]
+        idx_desc = cols.index("Descripción de la Actividad")
+        exceso = total_width - page_width
+        max_widths[idx_desc] = max(30, max_widths[idx_desc] - exceso)
 
     pdf.set_font("Arial", 'B', 11)
     y_start = pdf.get_y()
