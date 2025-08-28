@@ -69,8 +69,8 @@ def dibujar_tabla_resumen(pdf, resumen_fila):
 
 def dibujar_tabla_actividades(pdf, filas):
     # Ajusta aquí los nombres de columnas según los datos reales de la hoja de actividades
-    cols = ["Nombre del Asistente", "Horas asignadas", "Horas totales", "Horas realizadas", "Porcentaje", "Horas pendientes", "Fecha de corte", "Contraseña"]
-    headers = ["Nombre", "Asignadas", "Totales", "Realizadas", "Porcentaje", "Pendientes", "Corte", "Contraseña"]
+    cols = ["Nombre del Asistente", "Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
+    headers = ["Nombre del Asistente", "Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
     print("Columnas en actividades:", filas.columns.tolist())
 
     def text_width(text):
@@ -102,58 +102,15 @@ def dibujar_tabla_actividades(pdf, filas):
     pdf.set_font("Arial", '', 10)
     line_height = 5
     for _, fila in filas.iterrows():
-        desc_text = str(fila["Descripción de la Actividad"])
-        # Calcular líneas para la descripción
-        words = desc_text.split()
-        lines = []
-        current_line = ""
-        for word in words:
-            test_line = f"{current_line} {word}".strip()
-            if pdf.get_string_width(test_line) < max_widths[3]:
-                current_line = test_line
-            else:
-                lines.append(current_line)
-                current_line = word
-        if current_line:
-            lines.append(current_line)
-
-        cell_height_desc = line_height * len(lines)
-        max_cell_height = max(cell_height, cell_height_desc)
-
-        if pdf.check_page_break(max_cell_height):
-            y_start = pdf.get_y()
-            x_pos = pdf.l_margin
-            for i, header in enumerate(headers):
-                pdf.set_xy(x_pos, y_start)
-                pdf.multi_cell(max_widths[i], cell_height / 2, header, border=1, align='C')
-                x_pos += max_widths[i]
-            pdf.ln()
-
+        # Solo usar las columnas reales
         x_pos = pdf.l_margin
         y_before = pdf.get_y()
-        # Tipo de horas
-        pdf.set_xy(x_pos, y_before)
-        pdf.multi_cell(max_widths[0], max_cell_height, str(fila["Tipo de horas"]), border=1, align='C')
-        x_pos += max_widths[0]
-        # Fecha de la Actividad
-        pdf.set_xy(x_pos, y_before)
-        pdf.multi_cell(max_widths[1], max_cell_height, str(fila["Fecha de la Actividad"]), border=1, align='C')
-        x_pos += max_widths[1]
-        # Siglas de la Actividad
-        pdf.set_xy(x_pos, y_before)
-        pdf.multi_cell(max_widths[2], max_cell_height, str(fila["Siglas de la Actividad"]), border=1, align='C')
-        x_pos += max_widths[2]
-        # Descripción de la Actividad
-        pdf.set_xy(x_pos, y_before)
-        pdf.multi_cell(max_widths[3], line_height, desc_text, border=1)
-        # Calcular nueva posición Y después de la descripción
-        y_after_desc = pdf.get_y()
-        x_pos += max_widths[3]
-        # Horas
-        pdf.set_xy(x_pos, y_before)
-        pdf.multi_cell(max_widths[4], max_cell_height, str(fila["Horas"]), border=1, align='C')
-        # Mover Y a la posición más baja alcanzada por la descripción
-        pdf.set_y(max(y_after_desc, y_before + max_cell_height))
+        max_cell_height = 10
+        for i, col in enumerate(cols):
+            pdf.set_xy(x_pos, y_before)
+            pdf.multi_cell(max_widths[i], max_cell_height, str(fila[col]), border=1, align='C')
+            x_pos += max_widths[i]
+        pdf.ln(max_cell_height)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
     resumen_fila = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
