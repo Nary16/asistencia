@@ -69,47 +69,77 @@ def dibujar_tabla_resumen(pdf, resumen_fila):
 
 def dibujar_tabla_actividades(pdf, filas):
     # Ajusta aquí los nombres de columnas según los datos reales de la hoja de actividades
-    cols = ["Nombre del Asistente", "Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
-    headers = ["Nombre del Asistente", "Tipo de horas", "Fecha de la Actividad", "Siglas de la Actividad", "Descripción de la Actividad", "Cantidad de horas"]
+    # Definir columnas esperadas y filtrar solo las presentes
+    cols_all = [
+        "Nombre del Asistente",
+        "Tipo de horas",
+        "Fecha de la Actividad",
+        "Siglas de la Actividad",
+        "Descripción de la Actividad",
+        "Cantidad de horas"
+    ]
+    cols = [c for c in cols_all if c in filas.columns]
+    headers = cols.copy()
     print("Columnas en actividades:", filas.columns.tolist())
+
+    # Anchos mínimos y máximos sugeridos para cada columna (ajustar a cantidad de columnas)
+    min_widths_dict = {
+        "Nombre del Asistente": 28,
+        "Tipo de horas": 22,
+        "Fecha de la Actividad": 22,
+        "Siglas de la Actividad": 22,
+        "Descripción de la Actividad": 50,
+        "Cantidad de horas": 18
+    }
+    max_widths_dict = {
+        "Nombre del Asistente": 40,
+        "Tipo de horas": 28,
+        "Fecha de la Actividad": 28,
+        "Siglas de la Actividad": 28,
+        "Descripción de la Actividad": 80,
+        "Cantidad de horas": 22
+    }
+    min_widths = [min_widths_dict[c] for c in cols]
+    max_widths = [max_widths_dict[c] for c in cols]
 
     def text_width(text):
         return pdf.get_string_width(str(text)) + 4
 
-    max_widths = []
-    for col, header in zip(cols, headers):
-        max_w = text_width(header)
-        max_w = max(max_w, max((text_width(str(val)) for val in filas[col]), default=0))
-        max_widths.append(max_w)
+    # Calcular ancho óptimo por columna
+    col_widths = []
+    for i, col in enumerate(cols):
+        w = text_width(headers[i])
+        w = max(w, max((text_width(str(val)) for val in filas[col]), default=0))
+        w = max(w, min_widths[i])
+        w = min(w, max_widths[i])
+        col_widths.append(w)
 
     page_width = pdf.w - pdf.l_margin - pdf.r_margin
-    total_width = sum(max_widths)
-    if total_width > page_width:
-        idx_desc = cols.index("Descripción de la Actividad")
-        exceso = total_width - page_width
-        max_widths[idx_desc] = max(30, max_widths[idx_desc] - exceso)
+    total_width = sum(col_widths)
+    # Centrar la tabla si hay espacio
+    x_start = pdf.l_margin + max(0, (page_width - total_width) / 2)
 
+    # Encabezados con color de fondo
     pdf.set_font("Arial", 'B', 11)
+    pdf.set_fill_color(200, 220, 255)
     y_start = pdf.get_y()
-    x_pos = pdf.l_margin
-    cell_height = 10
     for i, header in enumerate(headers):
-        pdf.set_xy(x_pos, y_start)
-        pdf.multi_cell(max_widths[i], cell_height / 2, header, border=1, align='C')
-        x_pos += max_widths[i]
-    pdf.ln()
+        x = x_start + sum(col_widths[:i])
+        pdf.set_xy(x, y_start)
+        pdf.multi_cell(col_widths[i], 8, header, border=1, align='C', fill=True)
 
+    pdf.ln(8)
+
+    # Filas de datos
     pdf.set_font("Arial", '', 10)
-    line_height = 5
     for _, fila in filas.iterrows():
-        # Solo usar las columnas reales
-        x_pos = pdf.l_margin
-        y_before = pdf.get_y()
+        y_data = pdf.get_y()
         max_cell_height = 10
         for i, col in enumerate(cols):
-            pdf.set_xy(x_pos, y_before)
-            pdf.multi_cell(max_widths[i], max_cell_height, str(fila[col]), border=1, align='C')
-            x_pos += max_widths[i]
+            x = x_start + sum(col_widths[:i])
+            pdf.set_xy(x, y_data)
+            valor = str(fila[col]) if col in fila else ""
+            pdf.multi_cell(col_widths[i], max_cell_height, valor, border=1, align='C')
         pdf.ln(max_cell_height)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
