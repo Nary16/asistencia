@@ -180,14 +180,12 @@ def dibujar_tabla_actividades(pdf, filas):
         # Dibujar cada celda solo una vez, centrando verticalmente el texto si es necesario
         for i, valor in enumerate(valores):
             x = x_start + sum(col_widths[:i])
-            temp_y = pdf.get_y()
             cell_height = alturas[i] if alturas else max_cell_height
             v_offset = (max_cell_height - cell_height) / 2 if max_cell_height > cell_height else 0
             pdf.set_font("Arial", '', 8)
-            pdf.set_xy(x, temp_y + v_offset)
+            pdf.set_xy(x, y_data + v_offset)
             pdf.multi_cell(col_widths[i], 8, valor, border=1, align='C')
-            pdf.set_y(temp_y)
-    pdf.ln(max_cell_height + 2)  # Añade 2 puntos extra de espacio entre filas para evitar solapamiento
+        pdf.set_y(y_data + max_cell_height + 2)  # Avanza la posición vertical solo una vez por fila
 
 def generar_pdf(asistente, df_resumen, df_actividades):
     resumen_fila = df_resumen[df_resumen["Nombre del Asistente"] == asistente]
