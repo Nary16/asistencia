@@ -177,18 +177,18 @@ def cargar_contrasenas(sheet_id):
     url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"  # usa el gid real de la hoja
     df_contrasenas = pd.read_csv(url_contrasenas)
     print("Columnas encontradas en contraseñas:", df_contrasenas.columns.tolist())
-        col_contra = None
-        col_nombre = None
+    col_contra = None
+    col_nombre = None
     for col in df_contrasenas.columns:
         if col.strip().lower() == "contraseña":
             col_contra = col
-            if col.strip().lower() == "nombre":
-                col_nombre = col
+        if col.strip().lower() == "nombre":
+            col_nombre = col
     if not col_contra:
         col_contra = df_contrasenas.columns[-1]
-        if not col_nombre:
-            col_nombre = df_contrasenas.columns[0]
-        contrasenas = dict(zip(df_contrasenas[col_nombre], df_contrasenas[col_contra]))
+    if not col_nombre:
+        col_nombre = df_contrasenas.columns[0]
+    contrasenas = dict(zip(df_contrasenas[col_nombre], df_contrasenas[col_contra]))
     return contrasenas
 
 sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
