@@ -67,38 +67,6 @@ def dibujar_tabla_resumen(pdf, resumen_fila):
         pdf.cell(col_widths[i], 10, val, border=1, align='C')
     pdf.ln(20)
 
-def dibujar_tabla_resumen(pdf, resumen_fila):
-    headers = [
-        "Nombre del Asistente", "Horas asignadas", "Horas totales", "Horas realizadas",
-        "Porcentaje", "Horas pendientes", "Fecha de corte"
-    ]
-    col_widths = [40, 25, 25, 25, 25, 25, 25]
-
-    pdf.set_font("Arial", 'B', 12)
-    pdf.set_fill_color(200, 220, 255)
-    pdf.cell(0, 10, "Corte de Horas", ln=True, align='C', fill=True)
-    pdf.ln(2)
-
-    pdf.set_font("Arial", 'B', 10)
-    y_start = pdf.get_y()
-    page_width = pdf.w - pdf.l_margin - pdf.r_margin
-    total_width = sum(col_widths)
-    x_start = pdf.l_margin + (page_width - total_width) / 2
-
-    for i, header in enumerate(headers):
-        x = x_start + sum(col_widths[:i])
-        pdf.set_xy(x, y_start)
-        pdf.multi_cell(col_widths[i], 5, header, border=1, align='C')
-
-    pdf.set_font("Arial", '', 10)
-    y_data = y_start + 10
-    values = [str(resumen_fila[col].values[0]) for col in headers]
-    for i, val in enumerate(values):
-        x = x_start + sum(col_widths[:i])
-        pdf.set_xy(x, y_data)
-        pdf.cell(col_widths[i], 10, val, border=1, align='C')
-    pdf.ln(20)
-
 def dibujar_tabla_actividades(pdf, filas):
     # Ajusta aquí los nombres de columnas según los datos reales de la hoja de actividades
     # Definir columnas esperadas y filtrar solo las presentes
@@ -137,23 +105,37 @@ def dibujar_tabla_actividades(pdf, filas):
     def text_width(text):
         return pdf.get_string_width(str(text)) + 4
 
-    # Calcular ancho óptimo por columna, ampliando la columna de siglas
-    page_width = pdf.w - pdf.l_margin - pdf.r_margin
-    idx_sigla = None
-    for i, col in enumerate(cols):
-        if "Siglas" in col:
-            idx_sigla = i
-            break
-
-    ancho_sigla = 40  # ancho deseado para la columna de siglas
-    num_cols = len(cols)
-    ancho_restante = page_width - ancho_sigla if idx_sigla is not None else page_width
+    # Calcular ancho óptimo por columna
     col_widths = []
-    for i in range(num_cols):
-        if i == idx_sigla:
-            col_widths.append(ancho_sigla)
-        else:
-            col_widths.append(ancho_restante / (num_cols - 1) if num_cols > 1 else ancho_restante)
+    for i, col in enumerate(cols):
+        w = text_width(headers[i])
+        w = max(w, max((text_width(str(val)) for val in filas[col]), default=0))
+        w = max(w, min_widths[i])
+        w = min(w, max_widths[i])
+        col_widths.append(w)
+
+    page_width = pdf.w - pdf.l_margin - pdf.r_margin
+    total_width = sum(col_widths)
+    # Si la suma excede el ancho de página, reducir proporcionalmente (excepto la columna de descripción)
+    if total_width > page_width:
+        exceso = total_width - page_width
+        # Repartir el exceso entre todas las columnas menos la de descripción
+        idx_desc = None
+        for i, col in enumerate(cols):
+            if "Descripción" in col:
+                idx_desc = i
+                break
+        # Calcular el total de ancho de las columnas a reducir
+        ancho_reducible = sum(col_widths) - col_widths[idx_desc] if idx_desc is not None else sum(col_widths)
+        for i in range(len(col_widths)):
+            if i != idx_desc and ancho_reducible > 0:
+                reduccion = exceso * (col_widths[i] / ancho_reducible)
+                col_widths[i] = max(min_widths[i], col_widths[i] - reduccion)
+        # Si aún sobra, reducir la columna de descripción pero nunca por debajo de su mínimo
+        total_width = sum(col_widths)
+        if total_width > page_width and idx_desc is not None:
+            col_widths[idx_desc] = max(min_widths[idx_desc], col_widths[idx_desc] - (total_width - page_width))
+
     total_width = sum(col_widths)
     x_start = pdf.l_margin + max(0, (page_width - total_width) / 2)
 
@@ -169,32 +151,15 @@ def dibujar_tabla_actividades(pdf, filas):
     pdf.ln(8)
 
     # Filas de datos
-    pdf.set_font("Arial", '', 10)
+    pdf.set_font("Arial", '', 8)
     for _, fila in filas.iterrows():
         y_data = pdf.get_y()
-        valores = [str(fila[col]) if col in fila else "" for col in cols]
-        # Calcular la altura necesaria para cada celda
-        alturas = []
-        for i, valor in enumerate(valores):
-            # Crear una celda invisible para calcular la altura
+        max_cell_height = 10
+        for i, col in enumerate(cols):
             x = x_start + sum(col_widths[:i])
-            temp_y = pdf.get_y()
-            pdf.set_xy(x, temp_y)
-            pdf.multi_cell(col_widths[i], 5, valor, border=0, align='C')
-            alturas.append(pdf.get_y() - temp_y)
-            pdf.set_y(temp_y)  # Restaurar posición
-        max_cell_height = max(alturas) if alturas else 10
-        # Dibujar cada celda con la altura máxima y texto centrado verticalmente
-        for i, valor in enumerate(valores):
-            x = x_start + sum(col_widths[:i])
-            temp_y = pdf.get_y()
-            # Calcular el desplazamiento vertical para centrar el texto
-            pdf.set_xy(x, temp_y)
-            cell_height = alturas[i] if alturas else max_cell_height
-            v_offset = (max_cell_height - cell_height) / 2 if max_cell_height > cell_height else 0
-            pdf.set_xy(x, temp_y + v_offset)
-            pdf.multi_cell(col_widths[i], 5, valor, border=1, align='C')
-            pdf.set_y(temp_y)  # Restaurar para la siguiente celda
+            pdf.set_xy(x, y_data)
+            valor = str(fila[col]) if col in fila else ""
+            pdf.multi_cell(col_widths[i], max_cell_height, valor, border=1, align='C')
         pdf.ln(max_cell_height)
 
 def generar_pdf(asistente, df_resumen, df_actividades):
