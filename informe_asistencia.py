@@ -171,10 +171,10 @@ def generar_pdf(asistente, df_resumen, df_actividades):
         return None
 
     pdf = PDF()
-    pdf.set_left_margin(15)
-    pdf.set_right_margin(15)
+    pdf.set_left_margin(5)
+    pdf.set_right_margin(5)
     pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_auto_page_break(auto=True, margin=10)
 
     if not resumen_fila.empty:
         dibujar_tabla_resumen(pdf, resumen_fila)
