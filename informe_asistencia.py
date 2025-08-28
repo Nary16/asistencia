@@ -146,15 +146,15 @@ def dibujar_tabla_actividades(pdf, filas):
     for i, header in enumerate(headers):
         x = x_start + sum(col_widths[:i])
         pdf.set_xy(x, y_start)
-        pdf.multi_cell(col_widths[i], 8, header, border=1, align='C', fill=True)
+        pdf.multi_cell(col_widths[i], 6, header, border=1, align='C', fill=True)  # interlineado menor
 
-    pdf.ln(8)
+    pdf.ln(6)
 
     # Filas de datos
     pdf.set_font("Arial", '', 8)
     for _, fila in filas.iterrows():
         y_data = pdf.get_y()
-        max_cell_height = 10
+        max_cell_height = 8  # interlineado menor
         for i, col in enumerate(cols):
             x = x_start + sum(col_widths[:i])
             pdf.set_xy(x, y_data)
