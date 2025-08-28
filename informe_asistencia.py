@@ -25,9 +25,9 @@ class PDF(FPDF):
 
 def cargar_datos():
     """Carga datos desde Google Sheets y retorna dos DataFrames."""
-    sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
-    url_actividades = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=796485673"
-    url_resumen = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"
+    sheet_id = "1kQO659dZhq5lqwnXEmBmZ7zESlvk3BH7W9cClQ2CROk"
+    url_actividades = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=0"
+    url_resumen = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=1209679080"
     df_actividades = pd.read_csv(url_actividades)
     df_resumen = pd.read_csv(url_resumen)
     return df_actividades, df_resumen
@@ -101,6 +101,7 @@ def dibujar_tabla_actividades(pdf, filas):
     line_height = 5
     for _, fila in filas.iterrows():
         desc_text = str(fila["Descripción de la Actividad"])
+        # Calcular líneas para la descripción
         words = desc_text.split()
         lines = []
         current_line = ""
@@ -126,15 +127,31 @@ def dibujar_tabla_actividades(pdf, filas):
                 x_pos += max_widths[i]
             pdf.ln()
 
-        pdf.cell(max_widths[0], max_cell_height, str(fila["Tipo de horas"]), border=1)
-        pdf.cell(max_widths[1], max_cell_height, str(fila["Fecha de la Actividad"]), border=1)
-        pdf.cell(max_widths[2], max_cell_height, str(fila["Siglas de la Actividad"]), border=1)
-        x_before = pdf.get_x()
+        x_pos = pdf.l_margin
         y_before = pdf.get_y()
+        # Tipo de horas
+        pdf.set_xy(x_pos, y_before)
+        pdf.multi_cell(max_widths[0], max_cell_height, str(fila["Tipo de horas"]), border=1, align='C')
+        x_pos += max_widths[0]
+        # Fecha de la Actividad
+        pdf.set_xy(x_pos, y_before)
+        pdf.multi_cell(max_widths[1], max_cell_height, str(fila["Fecha de la Actividad"]), border=1, align='C')
+        x_pos += max_widths[1]
+        # Siglas de la Actividad
+        pdf.set_xy(x_pos, y_before)
+        pdf.multi_cell(max_widths[2], max_cell_height, str(fila["Siglas de la Actividad"]), border=1, align='C')
+        x_pos += max_widths[2]
+        # Descripción de la Actividad
+        pdf.set_xy(x_pos, y_before)
         pdf.multi_cell(max_widths[3], line_height, desc_text, border=1)
-        pdf.set_xy(x_before + max_widths[3], y_before)
-        pdf.cell(max_widths[4], max_cell_height, str(fila["Horas"]), border=1)
-        pdf.ln(max_cell_height)
+        # Calcular nueva posición Y después de la descripción
+        y_after_desc = pdf.get_y()
+        x_pos += max_widths[3]
+        # Horas
+        pdf.set_xy(x_pos, y_before)
+        pdf.multi_cell(max_widths[4], max_cell_height, str(fila["Horas"]), border=1, align='C')
+        # Mover Y a la posición más baja alcanzada por la descripción
+        pdf.set_y(max(y_after_desc, y_before + max_cell_height))
 
 def generar_pdf(asistente, df_resumen, df_actividades):
     resumen_fila = df_resumen[df_resumen["Nombre"] == asistente]
@@ -157,19 +174,27 @@ def generar_pdf(asistente, df_resumen, df_actividades):
     return pdf
 
 def cargar_contrasenas(sheet_id):
-    url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=882546156"  # usa el gid real de la hoja
+    url_contrasenas = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid=1209679080"  # usa el gid real de la hoja
     df_contrasenas = pd.read_csv(url_contrasenas)
-    contrasenas = dict(zip(df_contrasenas["Nombre"], df_contrasenas["Contraseña"]))
+    print("Columnas encontradas en contraseñas:", df_contrasenas.columns.tolist())
+    col_contra = None
+    for col in df_contrasenas.columns:
+        if col.strip().lower() == "contraseña":
+            col_contra = col
+            break
+    if not col_contra:
+        col_contra = df_contrasenas.columns[-1]
+    contrasenas = dict(zip(df_contrasenas["Nombre"], df_contrasenas[col_contra]))
     return contrasenas
 
-sheet_id = "1vX-OT6TrkNzEW-2hyBrxJJKAbQQKtqyFaMWiKjDTbow"
+sheet_id = "1kQO659dZhq5lqwnXEmBmZ7zESlvk3BH7W9cClQ2CROk"
 contrasenas_validas = cargar_contrasenas(sheet_id)
 
 # --- INTERFAZ STREAMLIT ---
 from PIL import Image
 
 # Cargar imagen desde archivo local
-image = Image.open("logo oscuro.png")
+image = Image.open("logo claro.png")
 st.image(image, width=500)
 
 st.title("Generador de Informe INIFAR 📄")
@@ -179,9 +204,12 @@ nombres = sorted(df_resumen["Nombre"].dropna().unique().tolist())
 asistente = st.selectbox("Selecciona un asistente:", nombres)
 
 import re
+import unicodedata
 
 def limpiar_nombre(nombre):
+    nombre = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode('utf-8')
     return re.sub(r'[^a-zA-Z0-9_-]', '_', nombre)
+
 # Inicializar session_state
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
