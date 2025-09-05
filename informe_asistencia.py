@@ -177,6 +177,9 @@ def dibujar_tabla_actividades(pdf, filas):
             alturas.append(n_lines * 8)  # 8 es la altura por línea
         max_cell_height = max(alturas) if alturas else 8
 
+        # Verificar salto de página antes de dibujar la fila
+        pdf.check_page_break(max_cell_height)
+
         # Dibujar cada celda solo una vez, centrando verticalmente el texto si es necesario
         interlineado = 5  # Menor interlineado para filas más compactas
         max_y = y_data
