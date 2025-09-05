@@ -140,15 +140,17 @@ def dibujar_tabla_actividades(pdf, filas):
     x_start = pdf.l_margin + max(0, (page_width - total_width) / 2)
 
     # Encabezados con color de fondo
-    pdf.set_font("Arial", 'B', 11)
-    pdf.set_fill_color(200, 220, 255)
-    y_start = pdf.get_y()
-    for i, header in enumerate(headers):
-        x = x_start + sum(col_widths[:i])
-        pdf.set_xy(x, y_start)
-        pdf.multi_cell(col_widths[i], 6, header, border=1, align='C', fill=True)  # interlineado menor
+    def dibujar_encabezados():
+        pdf.set_font("Arial", 'B', 11)
+        pdf.set_fill_color(200, 220, 255)
+        y_start = pdf.get_y()
+        for i, header in enumerate(headers):
+            x = x_start + sum(col_widths[:i])
+            pdf.set_xy(x, y_start)
+            pdf.multi_cell(col_widths[i], 6, header, border=1, align='C', fill=True)
+        pdf.ln(6)
 
-    pdf.ln(6)
+    dibujar_encabezados()
 
     # Filas de datos
     pdf.set_font("Arial", '', 8)
@@ -177,7 +179,11 @@ def dibujar_tabla_actividades(pdf, filas):
             alturas.append(n_lines * 8)  # 8 es la altura por línea
         max_cell_height = max(alturas) if alturas else 8
 
-    # El salto de página será automático por FPDF
+        # Si se va a saltar de página, redibujar encabezados
+        if pdf.get_y() + max_cell_height > pdf.page_break_trigger:
+            pdf.add_page()
+            dibujar_encabezados()
+            y_data = pdf.get_y()
 
         # Dibujar cada celda solo una vez, centrando verticalmente el texto si es necesario
         interlineado = 5  # Menor interlineado para filas más compactas
